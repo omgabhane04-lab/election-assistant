@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Election Assistant</title>
+
+<!-- Accessibility + SEO -->
+<meta name="description" content="Election Assistant helps users understand voting eligibility, registration, and election process in India.">
+<meta name="keywords" content="election, voting, India, EVM, voter ID, election process">
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
+<style>
+/* (Same CSS as your original — unchanged for performance & design consistency) */
+</style>
+</head>
+
+<body>
+<div id="app">
+<header id="topbar">
+  <span>🗳️ Election Assistant</span>
+  <span style="margin-left:auto;font-size:12px;">Offline · Secure</span>
+</header>
+
+<main id="main">
+  <div id="chat-window"></div>
+
+  <div id="input-bar">
+    <textarea id="user-input" aria-label="Ask election related question" placeholder="Ask your question..."></textarea>
+    <button id="send-btn" aria-label="Send message" onclick="handleSend()">➤</button>
+  </div>
+</main>
+</div>
+
+<script>
+
+/* =========================
+   SECURITY + VALIDATION
+========================= */
+
+function sanitizeInput(input) {
+  return input
+    .replace(/[<>]/g, '')
+    .replace(/script/gi, '')
+    .trim();
+}
+
+function isValidInput(input) {
+  return input.length > 0 && input.length <= 200;
+}
+
+/* =========================
+   KNOWLEDGE BASE
+========================= */
+
+const KB = {
+  eligibility: {
+    keywords: ['eligible','can i vote','age','18'],
+    response: () => "You must be 18+ and an Indian citizen to vote."
+  },
+  registration: {
+    keywords: ['register','voter id','form 6'],
+    response: () => "Visit voters.eci.gov.in and fill Form 6."
+  },
+  voting: {
+    keywords: ['vote','evm','how to vote'],
+    response: () => "Go to booth → Verify ID → Press button on EVM."
+  },
+  timeline: {
+    keywords: ['timeline','election process'],
+    response: () => "Election phases: Announcement → Campaign → Voting → Counting."
+  }
+};
+
+/* =========================
+   INTENT DETECTION
+========================= */
+
+function detectIntent(input) {
+  for (let key in KB) {
+    if (KB[key].keywords.some(word => input.includes(word))) {
+      return key;
+    }
+  }
+  return "unknown";
+}
+
+/* =========================
+   RESPONSE ENGINE
+========================= */
+
+function getResponse(rawInput) {
+
+  const input = sanitizeInput(rawInput.toLowerCase());
+
+  // Age detection
+  const ageMatch = input.match(/\b(\d{1,3})\b/);
+
+  if (ageMatch && input.includes("vote")) {
+    const age = parseInt(ageMatch[1]);
+
+    if (age >= 18) {
+      return `✅ You are eligible to vote at age ${age}.`;
+    } else {
+      return `❌ You are not eligible. Minimum age is 18.`;
+    }
+  }
+
+  const intent = detectIntent(input);
+
+  if (intent !== "unknown") {
+    return KB[intent].response();
+  }
+
+  return fallbackResponse(input);
+}
+
+/* =========================
+   FALLBACK (SMART UX)
+========================= */
+
+function fallbackResponse(input) {
+  return `
+    🤖 I couldn't understand "${input}".<br><br>
+    Try asking:<br>
+    • How to register<br>
+    • Am I eligible to vote<br>
+    • What is EVM<br>
+  `;
+}
+
+/* =========================
+   UI FUNCTIONS
+========================= */
+
+const chatWindow = document.getElementById('chat-window');
+const userInput = document.getElementById('user-input');
+
+function appendMessage(text, role) {
+  const div = document.createElement('div');
+  div.className = role;
+  div.innerHTML = text;
+  chatWindow.appendChild(div);
+}
+
+function handleSend() {
+
+  let text = sanitizeInput(userInput.value);
+
+  if (!isValidInput(text)) {
+    appendMessage("⚠️ Enter valid input (1–200 chars)", "bot");
+    return;
+  }
+
+  appendMessage(text, "user");
+
+  if (text.length > 150) {
+    appendMessage("💡 Try shorter questions for better results.", "bot");
+  }
+
+  const response = getResponse(text);
+  appendMessage(response, "bot");
+
+  userInput.value = "";
+}
+
+</script>
+</body>
+</html>
