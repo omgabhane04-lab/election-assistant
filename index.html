@@ -1,170 +1,1097 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Election Assistant</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Election Assistant</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── Reset & Variables ────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-<!-- Accessibility + SEO -->
-<meta name="description" content="Election Assistant helps users understand voting eligibility, registration, and election process in India.">
-<meta name="keywords" content="election, voting, India, EVM, voter ID, election process">
+    :root {
+      --navy:       #0d1b2e;
+      --navy-mid:   #152238;
+      --navy-light: #1e3252;
+      --gold:       #c9a84c;
+      --gold-light: #e8c97a;
+      --red:        #c0392b;
+      --white:      #f4f1ec;
+      --off-white:  #ede8df;
+      --text-muted: #a8b8cc;
+      --chat-user:  #1a3a5c;
+      --chat-bot:   #17253a;
+      --radius:     10px;
+      --shadow:     0 4px 24px rgba(0,0,0,0.35);
+    }
 
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+    html, body {
+      height: 100%;
+      font-family: 'Source Sans 3', sans-serif;
+      background: var(--navy);
+      color: var(--white);
+      overflow: hidden;
+    }
 
-<style>
-/* (Same CSS as your original — unchanged for performance & design consistency) */
-</style>
+    /* ── Layout Shell ─────────────────────────────────── */
+    #app {
+      display: grid;
+      grid-template-columns: 290px 1fr;
+      grid-template-rows: 60px 1fr;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Top Bar ──────────────────────────────────────── */
+    #topbar {
+      grid-column: 1 / -1;
+      background: var(--navy-mid);
+      border-bottom: 2px solid var(--gold);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 14px;
+      z-index: 10;
+    }
+
+    .topbar-flag {
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    .topbar-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--gold-light);
+      letter-spacing: 0.02em;
+    }
+
+    .topbar-subtitle {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-left: auto;
+      font-weight: 300;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #27ae60;
+      box-shadow: 0 0 6px #27ae60;
+      flex-shrink: 0;
+    }
+
+    /* ── Sidebar ──────────────────────────────────────── */
+    #sidebar {
+      background: var(--navy-mid);
+      border-right: 1px solid rgba(201,168,76,0.2);
+      overflow-y: auto;
+      padding: 20px 0 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    #sidebar::-webkit-scrollbar { width: 4px; }
+    #sidebar::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 2px; }
+
+    .sidebar-section {
+      padding: 0 18px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: 4px;
+    }
+
+    .sidebar-section-title {
+      font-size: 0.64rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--gold);
+      font-weight: 600;
+      margin-bottom: 12px;
+      margin-top: 8px;
+    }
+
+    /* Quick topic chips */
+    .chip-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip {
+      background: var(--navy-light);
+      border: 1px solid rgba(201,168,76,0.25);
+      color: var(--off-white);
+      font-size: 0.72rem;
+      padding: 5px 10px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background 0.18s, border-color 0.18s, color 0.18s;
+      font-family: 'Source Sans 3', sans-serif;
+      font-weight: 500;
+    }
+
+    .chip:hover {
+      background: var(--gold);
+      color: var(--navy);
+      border-color: var(--gold);
+    }
+
+    /* Timeline */
+    .timeline { padding-left: 8px; }
+
+    .tl-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 8px 0;
+      position: relative;
+    }
+
+    .tl-item:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 9px;
+      top: 28px;
+      bottom: -4px;
+      width: 2px;
+      background: rgba(201,168,76,0.2);
+    }
+
+    .tl-dot {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--navy-light);
+      border: 2px solid var(--gold);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      color: var(--gold);
+      font-weight: 700;
+      margin-top: 1px;
+    }
+
+    .tl-dot.done { background: var(--gold); color: var(--navy); }
+    .tl-dot.active { background: var(--red); border-color: var(--red); color: var(--white); box-shadow: 0 0 8px var(--red); }
+
+    .tl-text strong {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 1px;
+    }
+
+    .tl-text span {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    /* Key facts */
+    .fact-card {
+      background: var(--navy-light);
+      border-left: 3px solid var(--gold);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 9px 12px;
+      margin-bottom: 8px;
+    }
+
+    .fact-card .label {
+      font-size: 0.64rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--gold);
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+
+    .fact-card .value {
+      font-size: 0.82rem;
+      color: var(--off-white);
+      font-weight: 400;
+    }
+
+    /* ── Main Chat Area ────────────────────────────────── */
+    #main {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse at top right, rgba(201,168,76,0.04) 0%, transparent 60%),
+        var(--navy);
+    }
+
+    #chat-window {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scroll-behavior: smooth;
+    }
+
+    #chat-window::-webkit-scrollbar { width: 5px; }
+    #chat-window::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.3); border-radius: 3px; }
+
+    /* Welcome banner */
+    .welcome-banner {
+      background: linear-gradient(135deg, var(--navy-light), var(--navy-mid));
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: var(--radius);
+      padding: 22px 26px;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .welcome-banner h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      color: var(--gold-light);
+      margin-bottom: 8px;
+    }
+
+    .welcome-banner p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* Chat bubbles */
+    .bubble-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      animation: fadeUp 0.25s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .bubble-row.user  { flex-direction: row-reverse; }
+
+    .avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .avatar.bot  { background: var(--gold); color: var(--navy); }
+    .avatar.user { background: var(--red);  color: var(--white); }
+
+    .bubble {
+      max-width: 72%;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      line-height: 1.65;
+    }
+
+    .bubble.bot {
+      background: var(--chat-bot);
+      border: 1px solid rgba(201,168,76,0.15);
+      border-bottom-left-radius: 3px;
+      color: var(--off-white);
+    }
+
+    .bubble.user {
+      background: var(--chat-user);
+      border-bottom-right-radius: 3px;
+      color: var(--white);
+    }
+
+    /* Rich content inside bot bubbles */
+    .bubble h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      color: var(--gold-light);
+      margin-bottom: 8px;
+      border-bottom: 1px solid rgba(201,168,76,0.2);
+      padding-bottom: 5px;
+    }
+
+    .bubble ul, .bubble ol {
+      padding-left: 18px;
+      margin: 6px 0;
+    }
+
+    .bubble li { margin-bottom: 5px; }
+
+    .bubble .step {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .bubble .step-num {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: var(--gold);
+      color: var(--navy);
+      font-size: 0.7rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .bubble .highlight {
+      background: rgba(201,168,76,0.12);
+      border-left: 3px solid var(--gold);
+      padding: 6px 10px;
+      border-radius: 0 6px 6px 0;
+      margin: 8px 0;
+      font-size: 0.82rem;
+      color: var(--gold-light);
+    }
+
+    .bubble .tag {
+      display: inline-block;
+      background: rgba(192,57,43,0.2);
+      color: #e87979;
+      font-size: 0.68rem;
+      padding: 2px 8px;
+      border-radius: 20px;
+      margin-top: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* Typing indicator */
+    .typing { display: flex; align-items: center; gap: 5px; padding: 4px 0; }
+    .typing span {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: blink 1.2s infinite;
+    }
+    .typing span:nth-child(2) { animation-delay: 0.2s; }
+    .typing span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes blink {
+      0%, 60%, 100% { opacity: 0.2; transform: scale(0.8); }
+      30%            { opacity: 1;   transform: scale(1);   }
+    }
+
+    /* ── Input Bar ────────────────────────────────────── */
+    #input-bar {
+      border-top: 1px solid rgba(201,168,76,0.2);
+      padding: 14px 20px;
+      display: flex;
+      gap: 10px;
+      background: var(--navy-mid);
+      align-items: flex-end;
+    }
+
+    #user-input {
+      flex: 1;
+      background: var(--navy-light);
+      border: 1px solid rgba(201,168,76,0.25);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      color: var(--white);
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.9rem;
+      resize: none;
+      outline: none;
+      min-height: 44px;
+      max-height: 120px;
+      overflow-y: auto;
+      transition: border-color 0.2s;
+      line-height: 1.5;
+    }
+
+    #user-input::placeholder { color: var(--text-muted); }
+    #user-input:focus { border-color: var(--gold); }
+
+    #send-btn {
+      background: var(--gold);
+      border: none;
+      border-radius: var(--radius);
+      width: 44px; height: 44px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.2s, transform 0.1s;
+      color: var(--navy);
+    }
+
+    #send-btn:hover { background: var(--gold-light); }
+    #send-btn:active { transform: scale(0.95); }
+
+    #send-btn svg { width: 20px; height: 20px; }
+
+    #char-hint {
+      font-size: 0.66rem;
+      color: var(--text-muted);
+      padding: 0 4px 2px;
+      align-self: flex-end;
+    }
+  </style>
 </head>
-
 <body>
 <div id="app">
-<header id="topbar">
-  <span>🗳️ Election Assistant</span>
-  <span style="margin-left:auto;font-size:12px;">Offline · Secure</span>
-</header>
 
-<main id="main">
-  <div id="chat-window"></div>
+  <!-- ── Top Bar ── -->
+  <header id="topbar">
+    <span class="topbar-flag">🗳️</span>
+    <span class="topbar-title">Election Assistant</span>
+    <div class="status-dot"></div>
+    <span style="font-size:0.7rem;color:var(--text-muted)">Ready</span>
+    <span class="topbar-subtitle">Civic Education · Non-Partisan · Offline</span>
+  </header>
 
-  <div id="input-bar">
-    <textarea id="user-input" aria-label="Ask election related question" placeholder="Ask your question..."></textarea>
-    <button id="send-btn" aria-label="Send message" onclick="handleSend()">➤</button>
-  </div>
-</main>
+  <!-- ── Sidebar ── -->
+  <aside id="sidebar">
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Quick Topics</div>
+      <div class="chip-grid">
+        <span class="chip" onclick="quickAsk('Am I eligible to vote?')">Eligibility</span>
+        <span class="chip" onclick="quickAsk('How do I register to vote?')">Registration</span>
+        <span class="chip" onclick="quickAsk('How does the election process work?')">Process</span>
+        <span class="chip" onclick="quickAsk('How do I cast my vote?')">Voting</span>
+        <span class="chip" onclick="quickAsk('What is the election timeline?')">Timeline</span>
+        <span class="chip" onclick="quickAsk('What documents do I need to vote?')">Documents</span>
+        <span class="chip" onclick="quickAsk('What is EVM?')">EVM / VVPAT</span>
+        <span class="chip" onclick="quickAsk('What is NOTA?')">NOTA</span>
+        <span class="chip" onclick="quickAsk('Who conducts elections in India?')">Election Commission</span>
+        <span class="chip" onclick="quickAsk('What happens on election day?')">Election Day</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Key Facts</div>
+      <div class="fact-card">
+        <div class="label">Voting Age</div>
+        <div class="value">18 years and above</div>
+      </div>
+      <div class="fact-card">
+        <div class="label">Governing Body</div>
+        <div class="value">Election Commission of India</div>
+      </div>
+      <div class="fact-card">
+        <div class="label">Types of Elections</div>
+        <div class="value">Lok Sabha · Vidhan Sabha · Local Body</div>
+      </div>
+      <div class="fact-card">
+        <div class="label">Voter ID</div>
+        <div class="value">EPIC (Elector Photo ID Card)</div>
+      </div>
+      <div class="fact-card">
+        <div class="label">Online Portal</div>
+        <div class="value">voters.eci.gov.in</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">General Election Timeline</div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot done">✓</div>
+          <div class="tl-text">
+            <strong>Voter Roll Update</strong>
+            <span>Enrollment &amp; corrections open</span>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot active">→</div>
+          <div class="tl-text">
+            <strong>Model Code of Conduct</strong>
+            <span>Comes into force</span>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">3</div>
+          <div class="tl-text">
+            <strong>Nomination Filing</strong>
+            <span>Candidates file papers</span>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">4</div>
+          <div class="tl-text">
+            <strong>Campaigning Period</strong>
+            <span>Ends 48 hrs before polling</span>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">5</div>
+          <div class="tl-text">
+            <strong>Poll Day</strong>
+            <span>Voting 7 AM – 6 PM</span>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot">6</div>
+          <div class="tl-text">
+            <strong>Counting &amp; Results</strong>
+            <span>EVM counts tallied</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ── Main Chat ── -->
+  <main id="main">
+    <div id="chat-window">
+      <div class="welcome-banner">
+        <h2>🗳️ Welcome to Election Assistant</h2>
+        <p>Your non-partisan guide to understanding the democratic process. Ask me anything about voter eligibility, registration, election procedures, or your rights as a citizen.</p>
+      </div>
+      <!-- Messages injected here -->
+    </div>
+
+    <div id="input-bar">
+      <textarea
+        id="user-input"
+        rows="1"
+        placeholder="Ask about voting eligibility, registration, election process…"
+      ></textarea>
+      <span id="char-hint"></span>
+      <button id="send-btn" onclick="handleSend()" title="Send">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+  </main>
+
 </div>
 
 <script>
+/* ═══════════════════════════════════════════════════════════════
+   ELECTION ASSISTANT — Rule-Based Response Engine
+   Non-partisan · Offline · Educational
+   ═══════════════════════════════════════════════════════════════ */
 
-/* =========================
-   SECURITY + VALIDATION
-========================= */
-
-function sanitizeInput(input) {
-  return input
-    .replace(/[<>]/g, '')
-    .replace(/script/gi, '')
-    .trim();
-}
-
-function isValidInput(input) {
-  return input.length > 0 && input.length <= 200;
-}
-
-/* =========================
-   KNOWLEDGE BASE
-========================= */
+/* ── Knowledge Base ──────────────────────────────────────────── */
 
 const KB = {
+
   eligibility: {
-    keywords: ['eligible','can i vote','age','18'],
-    response: () => "You must be 18+ and an Indian citizen to vote."
+    keywords: ['eligible','eligibility','qualify','can i vote','allowed to vote','right to vote','voting age','minimum age','age limit','citizenship','citizen','18','above 18'],
+    title: 'Voter Eligibility',
+    response: () => `
+      <h3>🗳️ Who Can Vote?</h3>
+      <p>To be eligible to vote in Indian elections, you must meet ALL of the following criteria:</p>
+      <br>
+      <div class="step"><div class="step-num">1</div><div><strong>Age:</strong> You must be at least <em>18 years old</em> on the qualifying date (1st January of the revision year).</div></div>
+      <div class="step"><div class="step-num">2</div><div><strong>Citizenship:</strong> You must be a <em>citizen of India</em>. Non-citizens, including foreign nationals and NRIs (unless registered), cannot vote in Indian elections.</div></div>
+      <div class="step"><div class="step-num">3</div><div><strong>Residence:</strong> You must be an <em>ordinary resident</em> of the constituency where you wish to vote.</div></div>
+      <div class="step"><div class="step-num">4</div><div><strong>Sound Mind:</strong> You must not have been declared of unsound mind by a competent court.</div></div>
+      <div class="step"><div class="step-num">5</div><div><strong>No Disqualification:</strong> You must not have been disqualified under any law relating to corrupt practices or election offences.</div></div>
+      <div class="highlight">✅ If you are 18+ and an Indian citizen, you have the <strong>constitutional right to vote</strong> under Article 326 of the Indian Constitution.</div>
+      <span class="tag">Fundamental Right</span>
+    `
   },
+
   registration: {
-    keywords: ['register','voter id','form 6'],
-    response: () => "Visit voters.eci.gov.in and fill Form 6."
+    keywords: ['register','registration','enroll','enrollment','voter id','voter card','epic','apply','new voter','form 6','how to register','sign up','add name','voter list','electoral roll'],
+    title: 'Voter Registration',
+    response: () => `
+      <h3>📋 How to Register as a Voter</h3>
+      <p>Registration is free and mandatory before you can vote. Here's how to do it:</p>
+      <br>
+      <div class="step"><div class="step-num">1</div><div><strong>Check Eligibility:</strong> Confirm you are 18+ years old and an Indian citizen residing in the constituency.</div></div>
+      <div class="step"><div class="step-num">2</div><div><strong>Visit the Portal:</strong> Go to <em>voters.eci.gov.in</em> or the <em>Voter Helpline App</em> (available on Android & iOS).</div></div>
+      <div class="step"><div class="step-num">3</div><div><strong>Fill Form 6:</strong> New voters must complete <em>Form 6</em> — the application for inclusion of name in the electoral roll.</div></div>
+      <div class="step"><div class="step-num">4</div><div><strong>Upload Documents:</strong> Attach proof of age (birth certificate, passport, school certificate) and proof of address (Aadhaar, ration card, utility bill).</div></div>
+      <div class="step"><div class="step-num">5</div><div><strong>Submit Application:</strong> Submit online or visit your nearest Electoral Registration Officer (ERO) / Booth Level Officer (BLO).</div></div>
+      <div class="step"><div class="step-num">6</div><div><strong>Verification:</strong> An official will verify your details and address.</div></div>
+      <div class="step"><div class="step-num">7</div><div><strong>Receive EPIC:</strong> Once approved, you will receive your Elector Photo Identity Card (EPIC / Voter ID).</div></div>
+      <div class="highlight">📌 You can also register offline at your local Electoral Registration Office. The helpline number is <strong>1950</strong>.</div>
+      <br>
+      <strong>Other Useful Forms:</strong>
+      <ul>
+        <li><strong>Form 7</strong> — Deletion of name from roll</li>
+        <li><strong>Form 8</strong> — Correction of entries in voter roll</li>
+        <li><strong>Form 8A</strong> — Transposition within constituency</li>
+      </ul>
+    `
   },
-  voting: {
-    keywords: ['vote','evm','how to vote'],
-    response: () => "Go to booth → Verify ID → Press button on EVM."
+
+  process: {
+    keywords: ['election process','how election works','how does election','electoral system','electoral process','democracy','voting system','how voting works','fptp','first past','constituency','lok sabha election','how india votes'],
+    title: 'Election Process',
+    response: () => `
+      <h3>🏛️ How the Indian Election Process Works</h3>
+      <p>India follows a <strong>First-Past-The-Post (FPTP)</strong> system in a multi-party democratic framework.</p>
+      <br>
+      <strong>Types of Elections:</strong>
+      <ul>
+        <li>🇮🇳 <strong>Lok Sabha</strong> — National Parliament (every 5 years)</li>
+        <li>🏛️ <strong>Vidhan Sabha</strong> — State Legislature (every 5 years)</li>
+        <li>🏘️ <strong>Local Body</strong> — Municipal/Panchayat elections</li>
+        <li>🪑 <strong>Rajya Sabha</strong> — Upper House (indirect election)</li>
+        <li>👤 <strong>Presidential / VP</strong> — Indirect by elected representatives</li>
+      </ul>
+      <br>
+      <strong>How FPTP Works:</strong>
+      <div class="step"><div class="step-num">1</div><div>India is divided into <em>constituencies</em> (548 for Lok Sabha).</div></div>
+      <div class="step"><div class="step-num">2</div><div>Each constituency elects <em>one representative</em>.</div></div>
+      <div class="step"><div class="step-num">3</div><div>The candidate with the <em>most votes wins</em> — even if below 50%.</div></div>
+      <div class="step"><div class="step-num">4</div><div>The party winning the <em>majority of seats</em> (273+) forms the government.</div></div>
+      <div class="highlight">⚖️ The Election Commission of India (ECI) is an independent constitutional body that oversees the entire election process — from announcing dates to declaring results.</div>
+    `
   },
+
   timeline: {
-    keywords: ['timeline','election process'],
-    response: () => "Election phases: Announcement → Campaign → Voting → Counting."
+    keywords: ['timeline','schedule','dates','when is election','election date','phases','phase','announcement','result date','counting date','nomination','campaign','model code'],
+    title: 'Election Timeline',
+    response: () => `
+      <h3>📅 General Election Timeline</h3>
+      <p>A typical Indian general election follows this sequence of events:</p>
+      <br>
+      <div class="step"><div class="step-num">1</div><div><strong>Announcement:</strong> The Election Commission announces the election schedule and activates the <em>Model Code of Conduct (MCC)</em>.</div></div>
+      <div class="step"><div class="step-num">2</div><div><strong>Voter Roll Finalisation:</strong> Voter rolls are updated. Final list published for public inspection.</div></div>
+      <div class="step"><div class="step-num">3</div><div><strong>Nomination Filing:</strong> Candidates file nomination papers with the Returning Officer. Papers are scrutinised.</div></div>
+      <div class="step"><div class="step-num">4</div><div><strong>Withdrawal:</strong> Candidates may withdraw nominations within the allowed period.</div></div>
+      <div class="step"><div class="step-num">5</div><div><strong>Campaigning:</strong> Active campaign period. Ends 48 hours before polling (Silent Period).</div></div>
+      <div class="step"><div class="step-num">6</div><div><strong>Poll Day:</strong> Voting takes place. Booths open 7 AM to 6 PM. EVMs are sealed after voting.</div></div>
+      <div class="step"><div class="step-num">7</div><div><strong>Counting Day:</strong> EVMs unsealed under strict supervision. Votes tallied; results declared.</div></div>
+      <div class="step"><div class="step-num">8</div><div><strong>Government Formation:</strong> Winning party/coalition forms the government.</div></div>
+      <div class="highlight">📌 Large elections like Lok Sabha are often held in <strong>multiple phases</strong> spread over weeks across different states/regions.</div>
+    `
+  },
+
+  voting: {
+    keywords: ['how to vote','cast vote','voting procedure','on election day','polling booth','booth','evm use','press button','voting machine','voting steps','vote cast','how do i vote'],
+    title: 'Voting Procedure',
+    response: () => `
+      <h3>🗳️ How to Cast Your Vote</h3>
+      <p>Voting in India is done using Electronic Voting Machines (EVMs). Here's the step-by-step process:</p>
+      <br>
+      <div class="step"><div class="step-num">1</div><div><strong>Find Your Booth:</strong> Check your polling station on your Voter ID card or at voters.eci.gov.in using your EPIC number.</div></div>
+      <div class="step"><div class="step-num">2</div><div><strong>Carry ID:</strong> Bring your Voter ID (EPIC) or any of the 12 alternative approved documents (Aadhaar, Passport, PAN, Driving Licence, etc.).</div></div>
+      <div class="step"><div class="step-num">3</div><div><strong>Report to Booth:</strong> Arrive at your polling station. Polling hours are typically <em>7:00 AM to 6:00 PM</em>.</div></div>
+      <div class="step"><div class="step-num">4</div><div><strong>Queue Up:</strong> Join the queue. Separate queues may be available for senior citizens, differently-abled voters, and women.</div></div>
+      <div class="step"><div class="step-num">5</div><div><strong>Identity Verification:</strong> An official will verify your name on the electoral roll and check your ID. Your finger is marked with <em>indelible ink</em>.</div></div>
+      <div class="step"><div class="step-num">6</div><div><strong>Enter Voting Compartment:</strong> You enter a private compartment with the EVM.</div></div>
+      <div class="step"><div class="step-num">7</div><div><strong>Press Your Choice:</strong> Press the blue button next to your chosen candidate's name/symbol on the EVM.</div></div>
+      <div class="step"><div class="step-num">8</div><div><strong>VVPAT Slip:</strong> A paper slip briefly appears in the VVPAT (Voter Verifiable Paper Audit Trail) window, showing your vote. It drops into a sealed box after 7 seconds.</div></div>
+      <div class="step"><div class="step-num">9</div><div><strong>Done:</strong> A beep confirms your vote is cast. Leave the booth.</div></div>
+      <div class="highlight">🔒 Your vote is <strong>completely secret</strong>. No one — not even election officials — can know who you voted for.</div>
+    `
+  },
+
+  documents: {
+    keywords: ['documents','id proof','what to carry','identity proof','acceptable id','aadhaar','passport','pan card','driving licence','id card','what do i need','proof'],
+    title: 'Documents for Voting',
+    response: () => `
+      <h3>📄 Documents Accepted at Polling Booth</h3>
+      <p>The Election Commission of India accepts the following <strong>12 Photo Identity Documents</strong> at polling booths:</p>
+      <br>
+      <ul>
+        <li>🪪 <strong>Voter ID (EPIC)</strong> — Primary document</li>
+        <li>🪪 Aadhaar Card</li>
+        <li>🛂 Passport</li>
+        <li>🚗 Driving Licence</li>
+        <li>💳 PAN Card</li>
+        <li>🏛️ Service Identity Card (Central/State Govt, PSU, Public Ltd Co.)</li>
+        <li>📸 Passbook with photo (Bank / Post Office)</li>
+        <li>🎓 Smart Card (Govt. Health Schemes)</li>
+        <li>🎖️ MNREGA Job Card</li>
+        <li>📜 Smart Card (Labour Ministry)</li>
+        <li>👴 Pension Document with photo</li>
+        <li>🏅 NPR Smart Card issued by RGI</li>
+      </ul>
+      <div class="highlight">💡 Even if you don't have a Voter ID card yet, you can vote using <strong>any one of the above documents</strong>, provided your name appears in the electoral roll.</div>
+    `
+  },
+
+  evm: {
+    keywords: ['evm','electronic voting machine','voting machine','vvpat','paper trail','ballot','ballot paper','evms','rigged','tamper','secure'],
+    title: 'EVM & VVPAT',
+    response: () => `
+      <h3>⚡ EVM & VVPAT — How They Work</h3>
+      <br>
+      <strong>What is an EVM?</strong>
+      <p>An Electronic Voting Machine (EVM) is a portable, battery-operated device used to record votes. It replaced traditional paper ballots for increased accuracy and efficiency.</p>
+      <br>
+      <strong>EVM Structure:</strong>
+      <ul>
+        <li>🔵 <strong>Control Unit (CU)</strong> — Operated by the Presiding Officer; enables voting</li>
+        <li>🟢 <strong>Balloting Unit (BU)</strong> — The unit voters interact with; shows candidate names & symbols with blue buttons</li>
+      </ul>
+      <br>
+      <strong>What is VVPAT?</strong>
+      <p>The Voter Verifiable Paper Audit Trail (VVPAT) is a printer attached to the EVM. After you press the vote button, a printed slip appears for <em>7 seconds</em> showing:</p>
+      <ul>
+        <li>Candidate's serial number</li>
+        <li>Name</li>
+        <li>Election symbol</li>
+      </ul>
+      <p>The slip then drops into a sealed compartment automatically.</p>
+      <br>
+      <strong>Security Features:</strong>
+      <ul>
+        <li>🔒 Not connected to any network — standalone device</li>
+        <li>🔒 Sealed at multiple levels with unique codes</li>
+        <li>🔒 Stored in strong rooms with multi-layer security</li>
+        <li>🔒 Manufactured only by BEL & ECIL under ECI oversight</li>
+      </ul>
+      <div class="highlight">📋 VVPAT slips can be cross-verified during disputes or random audits to ensure vote integrity.</div>
+    `
+  },
+
+  nota: {
+    keywords: ['nota','none of the above','reject','reject all','no candidate','none of them','dont like any'],
+    title: 'NOTA — None of the Above',
+    response: () => `
+      <h3>🚫 What is NOTA?</h3>
+      <br>
+      <p><strong>NOTA (None of the Above)</strong> is an option on the EVM that allows voters to formally reject all candidates contesting from their constituency.</p>
+      <br>
+      <strong>Key Facts:</strong>
+      <ul>
+        <li>📅 Introduced by the Supreme Court of India in <strong>September 2013</strong></li>
+        <li>🗳️ NOTA appears as the <strong>last option</strong> on the EVM ballot</li>
+        <li>🔘 It has a <em>unique symbol</em> — a ballot paper with a cross</li>
+        <li>📊 NOTA votes are counted and <strong>publicly disclosed</strong> in results</li>
+        <li>⚖️ Even if NOTA gets the most votes, the candidate with the next highest votes still <strong>wins</strong> — NOTA does not void the election</li>
+      </ul>
+      <br>
+      <div class="highlight">💡 Voting NOTA is a way to <strong>exercise your democratic right</strong> while expressing dissatisfaction with all available candidates. It registers your participation and sends a signal to political parties.</div>
+      <span class="tag">Your Right</span>
+    `
+  },
+
+  eci: {
+    keywords: ['election commission','eci','who conducts','who runs election','chief election commissioner','constitutional body','independent','autonomous','govern election'],
+    title: 'Election Commission of India',
+    response: () => `
+      <h3>🏛️ Election Commission of India (ECI)</h3>
+      <br>
+      <p>The Election Commission of India is an <strong>autonomous constitutional authority</strong> responsible for administering Union and State election processes in India.</p>
+      <br>
+      <strong>Established:</strong> 25 January 1950 (now celebrated as National Voters' Day)
+      <br><br>
+      <strong>Structure:</strong>
+      <ul>
+        <li>👤 Chief Election Commissioner (CEC)</li>
+        <li>👤 Election Commissioners (currently 2)</li>
+        <li>🏢 State Chief Electoral Officers in each state</li>
+        <li>🏘️ District Election Officers, EROs, BLOs at ground level</li>
+      </ul>
+      <br>
+      <strong>Key Powers &amp; Functions:</strong>
+      <ul>
+        <li>📅 Announces election schedules and phases</li>
+        <li>📜 Maintains electoral rolls and voter registration</li>
+        <li>✅ Recognises and de-recognises political parties</li>
+        <li>🔏 Enforces Model Code of Conduct</li>
+        <li>⚖️ Settles election disputes at certain levels</li>
+        <li>📡 Supervises EVM deployment and security</li>
+      </ul>
+      <div class="highlight">🌐 Official Website: <strong>eci.gov.in</strong> | Voter Portal: <strong>voters.eci.gov.in</strong> | Helpline: <strong>1950</strong></div>
+    `
+  },
+
+  electionDay: {
+    keywords: ['election day','polling day','what happens','day of election','voting day','on the day','booth day','what to do on','polling hours','booth hours','when does polling','7am','6pm'],
+    title: 'What Happens on Election Day',
+    response: () => `
+      <h3>📆 What Happens on Election Day</h3>
+      <br>
+      <strong>Before Polls Open:</strong>
+      <ul>
+        <li>Polling officials arrive and set up the booth (~2 hrs early)</li>
+        <li>EVMs and VVPATs are checked via a mock poll in front of candidates/agents</li>
+        <li>Booth is sealed and formally opened</li>
+      </ul>
+      <br>
+      <strong>During Polling (7 AM – 6 PM):</strong>
+      <ul>
+        <li>Voters queue up and present their ID</li>
+        <li>Names verified on electoral roll; ink applied to left index finger</li>
+        <li>Voter issued a <em>voter slip</em> and directed to EVM</li>
+        <li>Vote cast and VVPAT slip verified</li>
+      </ul>
+      <br>
+      <strong>After Polls Close:</strong>
+      <ul>
+        <li>EVMs are switched off and sealed with signatures of all party agents</li>
+        <li>EVMs transported to Strong Rooms under security escort</li>
+        <li>Strong Rooms sealed and guarded until counting day</li>
+      </ul>
+      <br>
+      <strong>On Counting Day:</strong>
+      <ul>
+        <li>Strong Rooms opened under strict supervision</li>
+        <li>EVMs counted round by round, constituency by constituency</li>
+        <li>Returning Officer declares results</li>
+      </ul>
+      <div class="highlight">📢 A <em>public holiday</em> is declared on poll day in the concerned area. Employers must allow workers time to vote.</div>
+    `
+  },
+
+  rights: {
+    keywords: ['voter rights','my rights','right to vote','can they stop me','denied voting','refused','intimidation','bribe','corrupt','mcc','model code','complaint','report'],
+    title: 'Voter Rights & Grievances',
+    response: () => `
+      <h3>⚖️ Your Rights as a Voter</h3>
+      <br>
+      <strong>You have the right to:</strong>
+      <ul>
+        <li>✅ Vote freely without coercion or intimidation</li>
+        <li>✅ Cast your vote in complete secrecy</li>
+        <li>✅ Request a <em>Tender Vote</em> if your vote has already been cast by someone else</li>
+        <li>✅ Be accompanied by a companion if you are differently-abled</li>
+        <li>✅ Access a ramp/wheelchair facility at polling booths</li>
+        <li>✅ Report violations without fear of retaliation</li>
+      </ul>
+      <br>
+      <strong>What is Prohibited (Model Code of Conduct):</strong>
+      <ul>
+        <li>🚫 Bribing voters (money, gifts, liquor)</li>
+        <li>🚫 Voter intimidation or threatening</li>
+        <li>🚫 Using religion/caste to seek votes</li>
+        <li>🚫 Campaigning within 48 hrs of polling</li>
+        <li>🚫 Use of government resources for campaigning</li>
+      </ul>
+      <br>
+      <div class="highlight">📞 Report violations to: <strong>Helpline 1950</strong> | cVIGIL App (report with photo/video within 100 minutes) | National Grievance Portal: <strong>eci.gov.in</strong></div>
+      <span class="tag">Know Your Rights</span>
+    `
+  },
+
+  helperInfo: {
+    keywords: ['help','what can you do','what do you know','about you','who are you','topics','capabilities','features','what questions'],
+    title: 'About This Assistant',
+    response: () => `
+      <h3>ℹ️ What I Can Help With</h3>
+      <p>I am your <strong>offline Election Assistant</strong> — a non-partisan civic education tool. Here's everything I can answer:</p>
+      <br>
+      <ul>
+        <li>🗳️ <strong>Eligibility</strong> — Who can vote and why</li>
+        <li>📋 <strong>Registration</strong> — How to register & required forms</li>
+        <li>🏛️ <strong>Election Process</strong> — How India's electoral system works</li>
+        <li>📅 <strong>Timeline</strong> — Phases from announcement to results</li>
+        <li>🗳️ <strong>Voting Procedure</strong> — Step-by-step how to cast a vote</li>
+        <li>📄 <strong>Documents</strong> — What ID to carry to the polling booth</li>
+        <li>⚡ <strong>EVM &amp; VVPAT</strong> — How voting machines work</li>
+        <li>🚫 <strong>NOTA</strong> — What "None of the Above" means</li>
+        <li>🏛️ <strong>Election Commission</strong> — Who conducts elections</li>
+        <li>📆 <strong>Election Day</strong> — What to expect on polling day</li>
+        <li>⚖️ <strong>Voter Rights</strong> — Your rights and how to report violations</li>
+      </ul>
+      <br>
+      <div class="highlight">💬 You can also use the <strong>Quick Topic chips</strong> in the left panel to jump to any topic instantly.</div>
+    `
   }
+
 };
 
-/* =========================
-   INTENT DETECTION
-========================= */
-
-function detectIntent(input) {
-  for (let key in KB) {
-    if (KB[key].keywords.some(word => input.includes(word))) {
-      return key;
-    }
-  }
-  return "unknown";
-}
-
-/* =========================
-   RESPONSE ENGINE
-========================= */
-
-function getResponse(rawInput) {
-
-  const input = sanitizeInput(rawInput.toLowerCase());
-
-  // Age detection
-  const ageMatch = input.match(/\b(\d{1,3})\b/);
-
-  if (ageMatch && input.includes("vote")) {
-    const age = parseInt(ageMatch[1]);
-
-    if (age >= 18) {
-      return `✅ You are eligible to vote at age ${age}.`;
-    } else {
-      return `❌ You are not eligible. Minimum age is 18.`;
-    }
-  }
-
-  const intent = detectIntent(input);
-
-  if (intent !== "unknown") {
-    return KB[intent].response();
-  }
-
-  return fallbackResponse(input);
-}
-
-/* =========================
-   FALLBACK (SMART UX)
-========================= */
+/* ── Fallback Response ──────────────────────────────────────── */
 
 function fallbackResponse(input) {
   return `
-    🤖 I couldn't understand "${input}".<br><br>
-    Try asking:<br>
-    • How to register<br>
-    • Am I eligible to vote<br>
-    • What is EVM<br>
+    <h3>🤔 I'm not sure about that specific query</h3>
+    <p>I couldn't find a specific answer for <em>"${escapeHtml(input)}"</em>, but here are the topics I can help you with:</p>
+    <br>
+    <ul>
+      <li>🗳️ Voter eligibility and age requirements</li>
+      <li>📋 How to register to vote (Form 6, EPIC)</li>
+      <li>🏛️ How the Indian election system works (FPTP)</li>
+      <li>📅 Election timeline and phases</li>
+      <li>🗳️ Step-by-step voting procedure at a booth</li>
+      <li>📄 Documents accepted at polling booths</li>
+      <li>⚡ EVM and VVPAT explained</li>
+      <li>🚫 What NOTA means</li>
+      <li>⚖️ Your voter rights and grievance redressal</li>
+    </ul>
+    <div class="highlight">💡 Try asking something like: <strong>"How do I register to vote?"</strong> or <strong>"What documents do I need?"</strong> or tap a topic chip on the left panel.</div>
   `;
 }
 
-/* =========================
-   UI FUNCTIONS
-========================= */
+/* ── Core Response Engine ─────────────────────────────────── */
+
+function getResponse(rawInput) {
+  const input = rawInput.toLowerCase().trim();
+
+  // Guard empty
+  if (!input) return null;
+
+  // Age-specific eligibility logic
+  const ageMatch = input.match(/\b(\d{1,3})\s*(year|yr|years|yrs)?\s*(old)?\b/);
+  if (ageMatch && (input.includes('vote') || input.includes('eligible') || input.includes('can i'))) {
+    const age = parseInt(ageMatch[1]);
+    if (age >= 18) {
+      return `
+        <h3>✅ You Are Eligible to Vote!</h3>
+        <p>At <strong>${age} years old</strong>, you meet the minimum age requirement of <em>18 years</em> to vote in Indian elections.</p>
+        <br>
+        <p>Next steps:</p>
+        <div class="step"><div class="step-num">1</div><div>Check if your name is on the <strong>Electoral Roll</strong> at voters.eci.gov.in</div></div>
+        <div class="step"><div class="step-num">2</div><div>If not registered, fill <strong>Form 6</strong> to enroll as a new voter</div></div>
+        <div class="step"><div class="step-num">3</div><div>Obtain your <strong>Voter ID (EPIC)</strong> card</div></div>
+        <div class="highlight">🗳️ Your vote is your voice — exercise it in every election!</div>
+        <span class="tag">Eligible</span>
+      `;
+    } else {
+      return `
+        <h3>❌ Not Yet Eligible</h3>
+        <p>At <strong>${age} years old</strong>, you are not yet eligible to vote. The minimum voting age in India is <em>18 years</em>.</p>
+        <br>
+        <p>You will be eligible to vote when you turn 18. At that point, you can:</p>
+        <ul>
+          <li>Register on the Electoral Roll using <strong>Form 6</strong></li>
+          <li>Apply for your Voter ID card (EPIC)</li>
+          <li>Exercise your fundamental right to vote</li>
+        </ul>
+        <div class="highlight">📅 The qualifying date for age is <strong>1st January</strong> of the year of electoral roll revision. Plan your registration accordingly!</div>
+        <span class="tag">Not Yet Eligible</span>
+      `;
+    }
+  }
+
+  // Match knowledge base topics
+  for (const [key, topic] of Object.entries(KB)) {
+    if (topic.keywords.some(kw => input.includes(kw))) {
+      return topic.response();
+    }
+  }
+
+  // Fallback
+  return fallbackResponse(rawInput);
+}
+
+/* ── Chat UI Logic ──────────────────────────────────────────── */
 
 const chatWindow = document.getElementById('chat-window');
-const userInput = document.getElementById('user-input');
+const userInput  = document.getElementById('user-input');
 
-function appendMessage(text, role) {
-  const div = document.createElement('div');
-  div.className = role;
-  div.innerHTML = text;
-  chatWindow.appendChild(div);
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function appendMessage(htmlContent, role) {
+  const row = document.createElement('div');
+  row.className = `bubble-row ${role}`;
+
+  const avatar = document.createElement('div');
+  avatar.className = `avatar ${role}`;
+  avatar.textContent = role === 'bot' ? '⚖' : 'You';
+  avatar.style.fontSize = role === 'bot' ? '14px' : '0.6rem';
+
+  const bubble = document.createElement('div');
+  bubble.className = `bubble ${role}`;
+  bubble.innerHTML = htmlContent;
+
+  row.appendChild(avatar);
+  row.appendChild(bubble);
+  chatWindow.appendChild(row);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+  return row;
+}
+
+function showTyping() {
+  const row = document.createElement('div');
+  row.className = 'bubble-row bot';
+  row.id = 'typing-indicator';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar bot';
+  avatar.textContent = '⚖';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble bot';
+  bubble.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+
+  row.appendChild(avatar);
+  row.appendChild(bubble);
+  chatWindow.appendChild(row);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+function removeTyping() {
+  const el = document.getElementById('typing-indicator');
+  if (el) el.remove();
 }
 
 function handleSend() {
+  const text = userInput.value.trim();
+  if (!text) return;
 
-  let text = sanitizeInput(userInput.value);
+  // Show user message
+  appendMessage(escapeHtml(text), 'user');
+  userInput.value = '';
+  userInput.style.height = 'auto';
 
-  if (!isValidInput(text)) {
-    appendMessage("⚠️ Enter valid input (1–200 chars)", "bot");
-    return;
-  }
+  // Show typing
+  showTyping();
 
-  appendMessage(text, "user");
-
-  if (text.length > 150) {
-    appendMessage("💡 Try shorter questions for better results.", "bot");
-  }
-
-  const response = getResponse(text);
-  appendMessage(response, "bot");
-
-  userInput.value = "";
+  // Simulate slight delay for natural feel
+  setTimeout(() => {
+    removeTyping();
+    const response = getResponse(text);
+    if (response) {
+      appendMessage(response, 'bot');
+    }
+  }, 420);
 }
 
+function quickAsk(question) {
+  userInput.value = question;
+  handleSend();
+}
+
+// Enter to send (Shift+Enter for newline)
+userInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    handleSend();
+  }
+});
+
+// Auto-resize textarea
+userInput.addEventListener('input', () => {
+  userInput.style.height = 'auto';
+  userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
+});
+
+// Welcome bot message on load
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    appendMessage(`
+      <h3>👋 Hello! I'm your Election Assistant</h3>
+      <p>I can help you understand the Indian democratic process — from voter eligibility and registration to how EVMs work and what to expect on Election Day.</p>
+      <br>
+      <p>Try asking me something like:</p>
+      <ul>
+        <li>"<em>Am I eligible to vote at 18?</em>"</li>
+        <li>"<em>How do I register to vote?</em>"</li>
+        <li>"<em>What documents do I need at the booth?</em>"</li>
+        <li>"<em>What is NOTA?</em>"</li>
+      </ul>
+      <div class="highlight">🌟 All responses are non-partisan and based on official Election Commission of India guidelines.</div>
+    `, 'bot');
+  }, 300);
+});
 </script>
 </body>
 </html>
